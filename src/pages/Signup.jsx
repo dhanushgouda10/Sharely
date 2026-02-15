@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Eye, EyeOff, Lock } from 'lucide-react';
+import { Eye, EyeOff, Check, Lock } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Label } from '../components/ui/Label';
@@ -10,17 +10,45 @@ export function Signup() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    navigate('/dashboard');
+    setIsLoading(true);
+    
+    // Simulate brief loading state for smooth UX
+    setTimeout(() => {
+      // Save user data to localStorage
+      const userData = {
+        email: email,
+        name: email.split('@')[0], // Use part of email as name
+        avatar: null
+      };
+      
+      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('loginSuccess', 'true');
+      
+      // Show success state
+      setIsSuccess(true);
+      
+      // Trigger auth-change event to update navbar in same tab
+      window.dispatchEvent(new Event('auth-change'));
+      
+      // Navigate back to landing page after brief delay
+      setTimeout(() => {
+        navigate('/');
+      }, 300);
+    }, 500);
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className={`min-h-screen flex flex-col bg-white transition-opacity duration-500 ${
+      isSuccess && isLoading === false ? 'opacity-95' : 'opacity-100'
+    }`}>
       <nav className="flex items-center justify-between px-4 lg:px-8 py-5 bg-white">
         <Link to="/" className="flex items-center gap-2">
-          <span className="font-bold text-2xl text-green-700">Nextdoor</span>
+          <span className="font-bold text-2xl text-green-600">Nextdoor</span>
         </Link>
         <div className="flex items-center gap-4">
           <Link to="/login" className="text-[oklch(20.8%_0.042_265.755)] hover:text-green-700 font-medium">
@@ -42,7 +70,7 @@ export function Signup() {
           <div className="flex flex-col items-center space-y-3">
             <Button 
               variant="outline" 
-              className="w-[400px] h-12 rounded-[50px] justify-start gap-3 bg-[oklch(92.8%_0.006_264.531)] hover:bg-gray-300  text-[oklch(20.8%_0.042_265.755)] font-bold   !border-none" 
+              className="w-[400px] h-12 rounded-[50px] justify-start gap-3 bg-[oklch(92.8%_0.006_264.531)] hover:bg-slate-200  text-[oklch(20.8%_0.042_265.755)] font-bold   !border-none" 
               type="button"
             >
               <svg className="h-5 w-5" viewBox="0 0 24 24">
@@ -118,9 +146,26 @@ export function Signup() {
             </p>
             <Button 
               type="submit" 
-              className="w-[400px] h-12 rounded-[50px] bg-green-600 hover:bg-green-700 text-white font-medium mt-4 "
+              disabled={isLoading}
+              className={`w-[400px] h-12 rounded-[50px] text-white font-medium mt-4 transition-all duration-300 flex items-center justify-center gap-2 ${
+                isSuccess 
+                  ? 'bg-green-500 hover:bg-green-600' 
+                  : 'bg-green-600 hover:bg-green-700 disabled:opacity-75'
+              }`}
             >
-              Continue
+              {isLoading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Creating account...</span>
+                </>
+              ) : isSuccess ? (
+                <>
+                  <Check className="w-5 h-5" />
+                  <span>Success!</span>
+                </>
+              ) : (
+                'Continue'
+              )}
             </Button>
           </form>
 

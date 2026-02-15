@@ -1,5 +1,8 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { HeartHandshake, Package, ChevronDown } from 'lucide-react';
+import { Navbar } from '../components/Navbar';
+import { useToast } from '../components/Toast';
+import { HeartHandshake, Package, Menu, X, Home, Users, Package as PackageIcon, Settings, HelpCircle, LogOut } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 
 const featureCards = [
@@ -17,36 +20,94 @@ const featureCards = [
   },
 ];
 
-export function Landing() {
+export default function Landing() {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { addToast } = useToast();
+
+  // Check for login success flag and show toast
+  useEffect(() => {
+    const loginSuccess = localStorage.getItem('loginSuccess');
+    if (loginSuccess === 'true') {
+      addToast('Successfully logged in', 'success');
+      localStorage.removeItem('loginSuccess');
+    }
+  }, [addToast]);
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  const menuItems = [
+    { icon: Home, label: 'Home', href: '/' },
+    { icon: Users, label: 'Neighbors', href: '/neighbors' },
+    { icon: PackageIcon, label: 'Browse Items', href: '/browse' },
+    { icon: Settings, label: 'Settings', href: '/settings' },
+    { icon: HelpCircle, label: 'Help', href: '/help' },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
-      {/* Navbar - white, logo left, Log in (outline) + Sign up (green) right */}
-      <nav className="sticky top-0 z-50 flex items-center justify-between px-4 lg:px-8 py-5 bg-white border-b border-border/60 max-w-7xl mx-auto">
-        <Link to="/" className="flex items-center gap-2">
-          <HeartHandshake className="h-8 w-8 text-primary" />
-          <span className="font-semibold text-xl text-primary">Share-Nearby</span>
-        </Link>
-        <div className="flex items-center gap-6">
-          <button type="button" className="hidden sm:flex items-center gap-1 text-foreground/80 text-sm font-medium hover:text-foreground transition-smooth">
-            How it works
-            <ChevronDown className="h-4 w-4" />
+      {/* Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 transition-opacity duration-300"
+          onClick={toggleSidebar}
+        />
+      )}
+
+      {/* Sidebar */}
+      <div className={`fixed top-0 left-0 h-full w-64 bg-white shadow-xl z-50 transform transition-transform duration-300 ease-in-out ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}>
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <div className="flex items-center gap-2">
+            <HeartHandshake className="h-8 w-8 text-primary" />
+            <span className="font-semibold text-xl text-primary">Share-Nearby</span>
+          </div>
+          <button
+            onClick={toggleSidebar}
+            className="p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
+          >
+            <X className="h-5 w-5 text-gray-600" />
           </button>
-          <button type="button" className="hidden sm:flex items-center gap-1 text-foreground/80 text-sm font-medium hover:text-foreground transition-smooth">
-            Areas
-            <ChevronDown className="h-4 w-4" />
-          </button>
-          <Link to="/login">
-            <Button variant="outline" className="rounded-xl px-5">
-              Log in
-            </Button>
-          </Link>
-          <Link to="/signup">
-            <Button className="rounded-xl px-5 shadow-button hover:shadow-soft transition-smooth">
-              Sign up
-            </Button>
-          </Link>
         </div>
-      </nav>
+
+        <nav className="p-4">
+          <ul className="space-y-2">
+            {menuItems.map((item, index) => {
+              const Icon = item.icon;
+              return (
+                <li key={item.label}>
+                  <Link
+                    to={item.href}
+                    onClick={toggleSidebar}
+                    className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 ${index === 0
+                      ? 'bg-primary/10 text-primary font-medium'
+                      : 'text-gray-700 hover:bg-gray-100'
+                      }`}
+                  >
+                    <Icon className="h-5 w-5" />
+                    <span>{item.label}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+
+          <div className="mt-8 pt-8 border-t border-gray-200">
+            <Link
+              to="/login"
+              onClick={toggleSidebar}
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200"
+            >
+              <LogOut className="h-5 w-5" />
+              <span>Log in</span>
+            </Link>
+          </div>
+        </nav>
+      </div>
+
+      {/* Navbar - white, menu button left, logo center, Log in (outline) + Sign up (green) right */}
+      <Navbar onMenuClick={toggleSidebar} />
 
       {/* Hero strip - dark green band */}
       <div className="h-2 bg-primary" />
