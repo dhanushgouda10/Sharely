@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:wght@400;700&family=Source+Sans+3:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -7,43 +7,59 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 0 0% 10%;
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 10%;
-    /* Nextdoor-style green: #33854E */
-    --primary: 142 45% 36%;
+    --foreground: 222.2 84% 4.9%;
+
+    /* BuyNothing Teal */
+    --primary: 177 64% 33%;
+    /* #1F8B86 */
     --primary-foreground: 0 0% 100%;
-    --secondary: 210 14% 96%;
-    --secondary-foreground: 0 0% 10%;
-    --muted: 210 14% 96%;
-    --muted-foreground: 0 0% 45%;
-    --accent: 210 14% 96%;
-    --accent-foreground: 0 0% 10%;
+
+    /* BuyNothing Yellow/Gold */
+    --secondary: 40 92% 67%;
+    /* #F8C45C */
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    /* Light Gray/Beige for backgrounds */
+    --muted: 40 20% 97%;
+    /* #F9F8F6 */
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --card: 0 0% 98%;
+    /* #FAFAFA */
+    --card-foreground: 222.2 84% 4.9%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 177 64% 33%;
+    --radius: 1.5rem;
+    /* Larger border radius for that soft feel */
+
     --destructive: 0 84.2% 60.2%;
-    --border: 214 20% 90%;
-    --input: 214 20% 90%;
-    --ring: 142 45% 36%;
-    --radius: 0.75rem;
-    --section: 210 14% 96%;
+    --destructive-foreground: 210 40% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+    --accent: 40 20% 97%;
+    --accent-foreground: 222.2 47.4% 11.2%;
   }
 
   .dark {
+    /* Keeping dark mode neutral but respecting the teal brand color */
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
+    --primary: 177 64% 33%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 40 92% 67%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+    --card: 217 33% 10%;
     --card-foreground: 210 40% 98%;
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
+    --muted: 217 33% 10%;
     --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
+    --accent: 217 33% 17%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 224.3 76.3% 48%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 177 64% 33%;
   }
 }
 
@@ -51,6 +67,7 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground font-sans antialiased;
   }
@@ -66,9 +83,11 @@
   width: 8px;
   height: 8px;
 }
+
 ::-webkit-scrollbar-track {
   @apply bg-muted/30 rounded-full;
 }
+
 ::-webkit-scrollbar-thumb {
   @apply bg-muted-foreground/20 rounded-full hover:bg-muted-foreground/30;
 }

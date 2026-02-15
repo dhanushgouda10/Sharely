@@ -1,14 +1,24 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { HeartHandshake, Menu, ChevronDown, User, LogOut, LayoutDashboard } from 'lucide-react';
+import { HeartHandshake, Menu, ChevronDown, User, LogOut, LayoutDashboard, Bell } from 'lucide-react';
 import { Button } from './ui/Button';
 import { cn } from '../lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export function Navbar({ onMenuClick }) {
     const [user, setUser] = useState(null);
     const [dropdownOpen, setDropdownOpen] = useState(false);
+    const [scrolled, setScrolled] = useState(false);
     const dropdownRef = useRef(null);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setScrolled(window.scrollY > 20);
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
 
     // Check for user in localStorage on mount
     useEffect(() => {
@@ -27,11 +37,7 @@ export function Navbar({ onMenuClick }) {
         };
 
         checkUser();
-
-        // Listen for storage events to sync across tabs or after login
         window.addEventListener('storage', checkUser);
-
-        // Custom event for same-tab updates (optional but good for SPA)
         window.addEventListener('auth-change', checkUser);
 
         return () => {
@@ -58,115 +64,135 @@ export function Navbar({ onMenuClick }) {
         setUser(null);
         setDropdownOpen(false);
         navigate('/');
-        // Dispatch event to update other components if needed
         window.dispatchEvent(new Event('auth-change'));
     };
 
     return (
-        <nav className="sticky top-0 z-30 flex items-center justify-between px-4 lg:px-8 py-4 bg-white/80 backdrop-blur-md border-b border-border/60 max-w-7xl mx-auto transition-all duration-300">
-            <div className="flex items-center gap-4">
-                {/* Mobile Menu Button */}
-                <button
-                    onClick={onMenuClick}
-                    className="lg:hidden p-2 rounded-lg hover:bg-gray-100 transition-all duration-200 group"
-                    aria-label="Open menu"
-                >
-                    <Menu className="h-6 w-6 text-gray-600 group-hover:text-gray-900 transition-colors duration-200" />
-                </button>
-
-                {/* Logo */}
-                <Link to="/" className="flex items-center gap-2 group">
-                    <HeartHandshake className="h-8 w-8 text-primary transition-transform group-hover:scale-110 duration-300" />
-                    <span className="font-semibold text-xl text-primary tracking-tight">Share-Nearby</span>
-                </Link>
-            </div>
-
-            <div className="flex items-center gap-6">
-                {/* Desktop Links (Optional - usually on Landing these are anchor links or hidden) */}
-                <div className="hidden md:flex items-center gap-6">
-                    {/* Add any specific landing page links here if needed, keeping it clean for now */}
-                </div>
-
-                {user ? (
-                    // User Profile with Dropdown
-                    <div className="relative" ref={dropdownRef}>
-                        <div className="flex items-center gap-2 p-1 pr-3 rounded-full border border-border/50 hover:bg-gray-50 transition-all duration-200 group">
-                            {/* Avatar - navigates to dashboard */}
-                            <Link
-                                to="/dashboard"
-                                title="Go to Dashboard"
-                                className="flex items-center justify-center"
-                            >
-                                {user.avatar ? (
-                                    <img
-                                        src={user.avatar}
-                                        alt={user.name || 'User'}
-                                        className="h-9 w-9 rounded-full object-cover border border-gray-100"
-                                    />
-                                ) : (
-                                    <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                                        <User className="h-5 w-5" />
-                                    </div>
-                                )}
-                            </Link>
-                            {/* Dropdown trigger button - name and chevron */}
-                            <button
-                                onClick={() => setDropdownOpen(!dropdownOpen)}
-                                className="flex items-center gap-2 cursor-pointer"
-                            >
-                                <span className="hidden sm:block text-sm font-medium text-gray-700 group-hover:text-gray-900 max-w-[100px] truncate">
-                                    {user.name || 'User'}
-                                </span>
-                                <ChevronDown className={cn("h-4 w-4 text-gray-400 transition-transform duration-200", dropdownOpen && "rotate-180")} />
-                            </button>
-                        </div>
-
-                        {/* Dropdown Menu */}
-                        {dropdownOpen && (
-                            <div className="absolute right-0 mt-2 w-56 origin-top-right bg-white rounded-xl shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none animate-in fade-in slide-in-from-top-2 duration-200 z-50">
-                                <div className="py-2 px-1">
-                                    <div className="px-4 py-2 border-b border-gray-100 mb-1">
-                                        <p className="text-sm font-medium text-gray-900 truncate">{user.name || 'User'}</p>
-                                        <p className="text-xs text-gray-500 truncate">{user.email || ''}</p>
-                                    </div>
-
-                                    <Link
-                        to="/dashboard"
-                        className="group flex w-full items-center gap-2 rounded-lg px-4 py-2 text-sm text-gray-700 hover:bg-primary/5 hover:text-primary transition-colors"
-                        onClick={() => setDropdownOpen(false)}
+        <nav
+            className={cn(
+                "sticky top-0 z-50 transition-all duration-300",
+                scrolled
+                    ? "bg-background/95 backdrop-blur-md border-b border-border/40 py-3 shadow-sm"
+                    : "bg-transparent py-5"
+            )}
+        >
+            <div className="max-w-7xl mx-auto px-4 lg:px-8 flex items-center justify-between">
+                <div className="flex items-center gap-8">
+                    {/* Mobile Menu Button */}
+                    <button
+                        onClick={onMenuClick}
+                        className="lg:hidden p-2 text-foreground hover:bg-secondary/20 rounded-full transition-colors"
+                        aria-label="Open menu"
                     >
-                        <LayoutDashboard className="h-4 w-4 text-gray-400 group-hover:text-primary transition-colors" />
-                        Dashboard
+                        <Menu className="h-6 w-6" />
+                    </button>
+
+                    {/* Logo - Serif and Simple */}
+                    <Link to="/" className="flex items-center gap-2 group">
+                        <HeartHandshake className="h-8 w-8 text-primary" />
+                        <span className="font-serif font-bold text-2xl tracking-tight text-foreground">
+                            Sharely
+                        </span>
                     </Link>
 
-                                    <div className="my-1 border-t border-gray-100" />
+                    {/* Desktop Nav Links */}
+                    <div className="hidden lg:flex items-center gap-6">
+                        <Link to="/about" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">About</Link>
+                        <Link to="/guidelines" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Guidelines</Link>
+                        <Link to="/donate" className="text-sm font-medium text-muted-foreground hover:text-primary transition-colors">Donate</Link>
+                    </div>
+                </div>
 
-                                    <button
-                                        onClick={handleLogout}
-                                        className="group flex w-full items-center gap-2 rounded-lg px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
-                                    >
-                                        <LogOut className="h-4 w-4 text-red-400 group-hover:text-red-600 transition-colors" />
-                                        Logout
-                                    </button>
-                                </div>
+                <div className="flex items-center gap-4">
+                    {user ? (
+                        <>
+                            <button className="p-2 rounded-full text-muted-foreground hover:text-foreground hover:bg-secondary/20 transition-colors relative">
+                                <Bell className="h-6 w-6" />
+                                <span className="absolute top-2 right-2 h-2.5 w-2.5 bg-red-500 rounded-full border-2 border-background"></span>
+                            </button>
+
+                            {/* User Profile with Dropdown */}
+                            <div className="relative" ref={dropdownRef}>
+                                <button
+                                    onClick={() => setDropdownOpen(!dropdownOpen)}
+                                    className="flex items-center gap-2 p-1 pr-3 rounded-full border border-border hover:border-primary/50 hover:bg-secondary/10 transition-all duration-200"
+                                >
+                                    {user.avatar ? (
+                                        <img
+                                            src={user.avatar}
+                                            alt={user.name || 'User'}
+                                            className="h-8 w-8 rounded-full object-cover"
+                                        />
+                                    ) : (
+                                        <div className="h-8 w-8 rounded-full bg-secondary text-secondary-foreground flex items-center justify-center font-bold text-xs ring-2 ring-background">
+                                            {user.name ? user.name.charAt(0).toUpperCase() : <User className="h-4 w-4" />}
+                                        </div>
+                                    )}
+                                    <span className="hidden sm:block text-sm font-medium text-foreground max-w-[100px] truncate">
+                                        {user.name || 'User'}
+                                    </span>
+                                    <ChevronDown
+                                        className={cn(
+                                            "h-4 w-4 text-muted-foreground transition-transform duration-200",
+                                            dropdownOpen && "rotate-180"
+                                        )}
+                                    />
+                                </button>
+
+                                {/* Dropdown Menu */}
+                                <AnimatePresence>
+                                    {dropdownOpen && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                            transition={{ duration: 0.15, ease: "easeOut" }}
+                                            className="absolute right-0 mt-2 w-60 origin-top-right bg-card rounded-2xl shadow-soft border border-border p-2 focus:outline-none z-50"
+                                        >
+                                            <div className="px-3 py-2 mb-2 bg-secondary/10 rounded-xl">
+                                                <p className="text-sm font-serif font-bold text-foreground truncate">{user.name || 'User'}</p>
+                                                <p className="text-xs text-muted-foreground truncate">{user.email || ''}</p>
+                                            </div>
+
+                                            <div className="space-y-1">
+                                                <Link
+                                                    to="/dashboard"
+                                                    className="flex items-center gap-3 w-full px-3 py-2 text-sm text-foreground rounded-xl hover:bg-secondary/20 transition-colors"
+                                                    onClick={() => setDropdownOpen(false)}
+                                                >
+                                                    <LayoutDashboard className="h-4 w-4 text-muted-foreground" />
+                                                    Dashboard
+                                                </Link>
+                                                <div className="h-px bg-border/50 my-1" />
+                                                <button
+                                                    onClick={handleLogout}
+                                                    className="flex items-center gap-3 w-full px-3 py-2 text-sm text-destructive rounded-xl hover:bg-destructive/5 transition-colors"
+                                                >
+                                                    <LogOut className="h-4 w-4" />
+                                                    Logout
+                                                </button>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
-                        )}
-                    </div>
-                ) : (
-                    // Login / Signup Buttons
-                    <div className="flex items-center gap-3 animate-in fade-in duration-500">
-                        <Link to="/login">
-                            <Button variant="ghost" className="hidden sm:flex rounded-xl font-medium hover:bg-gray-100 text-gray-600">
-                                Log in
-                            </Button>
-                        </Link>
-                        <Link to="/signup">
-                            <Button className="rounded-xl px-5 shadow-sm hover:shadow-md transition-all duration-300 bg-primary hover:bg-primary/90 text-white font-medium">
-                                Sign up
-                            </Button>
-                        </Link>
-                    </div>
-                )}
+                        </>
+                    ) : (
+                        // Login / Signup Buttons
+                        <div className="flex items-center gap-2">
+                            <Link to="/login">
+                                <Button variant="ghost" className="hidden sm:flex text-foreground font-medium hover:bg-secondary/20 rounded-full px-6">
+                                    Log in
+                                </Button>
+                            </Link>
+                            <Link to="/signup">
+                                <Button className="rounded-full bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-5 shadow-none hover:shadow-lg transition-all text-base font-semibold">
+                                    Sign up
+                                </Button>
+                            </Link>
+                        </div>
+                    )}
+                </div>
             </div>
         </nav>
     );
