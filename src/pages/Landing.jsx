@@ -2,13 +2,40 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Navbar } from '../components/Navbar';
 import { useToast } from '../components/Toast';
-import { HeartHandshake, Package, Menu, X, Home, Users, Package as PackageIcon, Settings, HelpCircle, LogOut, ArrowRight, ShieldCheck, Zap, Globe, Search } from 'lucide-react';
+import { HeartHandshake, Package, Menu, X, Home, Users, Package as PackageIcon, Settings, HelpCircle, LogOut, ArrowRight, ShieldCheck, Zap, Globe, Search, ChevronDown, Star, Eye, Heart, MapPin, User } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { motion, AnimatePresence } from 'framer-motion';
 
+// Animation variants
 const fadeInUp = {
   hidden: { opacity: 0, y: 30 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
+};
+
+const fadeInLeft = {
+  hidden: { opacity: 0, x: -50 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.8, ease: "easeOut" } }
+};
+
+const fadeInRight = {
+  hidden: { opacity: 0, x: 50 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.8, ease: "easeOut" } }
+};
+
+const scaleIn = {
+  hidden: { opacity: 0, scale: 0.8 },
+  visible: { opacity: 1, scale: 1, transition: { duration: 0.6, ease: "easeOut" } }
+};
+
+const floatingAnimation = {
+  animate: {
+    y: [0, -10, 0],
+    transition: {
+      duration: 3,
+      repeat: Infinity,
+      ease: "easeInOut"
+    }
+  }
 };
 
 const staggerContainer = {
@@ -16,44 +43,105 @@ const staggerContainer = {
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.2
+      staggerChildren: 0.2,
+      ease: "easeInOut"
     }
   }
 };
 
-const featureCards = [
+const slideInFromBottom = {
+  hidden: { opacity: 0, y: 50 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
+};
+
+// Categories for navigation
+const categories = [
+  { name: 'Groceries', icon: Package, color: 'bg-emerald-100 text-emerald-600' },
+  { name: 'Books', icon: Package, color: 'bg-blue-100 text-blue-600' },
+  { name: 'Clothes', icon: Package, color: 'bg-purple-100 text-purple-600' },
+  { name: 'Home Decor', icon: Package, color: 'bg-orange-100 text-orange-600' },
+  { name: 'Tools', icon: Package, color: 'bg-gray-100 text-gray-600' },
+];
+
+// Sample listings for the grid
+const sampleListings = [
   {
-    title: 'Connect with your Community',
-    description: 'Find and join groups in the Sharely app or on Facebook.',
-    icon: Users,
-    color: 'text-primary',
+    id: 1,
+    name: 'Fresh Organic Vegetables',
+    location: '2.5 km away',
+    category: 'Groceries',
+    image: '🥬',
+    isFavorite: false
   },
   {
-    title: 'Share Gives, Asks, & Gratitude',
-    description: 'Give what you have, ask for what you need, and celebrate generosity together.',
-    icon: Package,
-    color: 'text-primary',
+    id: 2,
+    name: 'Vintage Book Collection',
+    location: 'Whitefield',
+    category: 'Books',
+    image: '📚',
+    isFavorite: true
   },
   {
-    title: 'Your Neighborhood & Beyond',
-    description: 'Explore posts nearby, or search for special items around the world.',
-    icon: Globe,
-    color: 'text-primary',
+    id: 3,
+    name: 'Designer Clothing Set',
+    location: 'HSR Layout',
+    category: 'Clothes',
+    image: '👗',
+    isFavorite: false
+  },
+  {
+    id: 4,
+    name: 'Handmade Home Decor',
+    location: 'Koramangala',
+    category: 'Home Decor',
+    image: '🏺',
+    isFavorite: false
+  },
+  {
+    id: 5,
+    name: 'Garden Tools Set',
+    location: '1.8 km away',
+    category: 'Tools',
+    image: '🔧',
+    isFavorite: true
+  },
+  {
+    id: 6,
+    name: 'Organic Fruits Basket',
+    location: 'Indiranagar',
+    category: 'Groceries',
+    image: '🍎',
+    isFavorite: false
   },
 ];
 
 export default function Landing() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [listings, setListings] = useState(sampleListings);
   const { addToast } = useToast();
 
-  // Check for login success flag and show toast
   useEffect(() => {
+    // Check if user is logged in
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+
+    // Check for login success flag and show toast
     const loginSuccess = localStorage.getItem('loginSuccess');
     if (loginSuccess === 'true') {
-      addToast('Successfully logged in', 'success');
+      addToast('Welcome back! You have successfully logged in.', 'success');
       localStorage.removeItem('loginSuccess');
     }
   }, [addToast]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    setUser(null);
+    addToast('You have been logged out successfully.', 'info');
+  };
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -67,271 +155,479 @@ export default function Landing() {
     { icon: HelpCircle, label: 'Help', href: '/help' },
   ];
 
-  return (
-    <div className="min-h-screen bg-background font-sans text-foreground selection:bg-secondary selection:text-secondary-foreground">
-      {/* Sidebar Overlay */}
-      <AnimatePresence>
-        {isSidebarOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
-            onClick={toggleSidebar}
-          />
-        )}
-      </AnimatePresence>
+  const toggleFavorite = (id) => {
+    setListings(prev => 
+      prev.map(item => 
+        item.id === id ? { ...item, isFavorite: !item.isFavorite } : item
+      )
+    );
+  };
 
-      {/* Sidebar - Keeping basic structure but updating styles */}
-      <motion.div
-        initial={{ x: '-100%' }}
-        animate={{ x: isSidebarOpen ? 0 : '-100%' }}
-        transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className="fixed top-0 left-0 h-full w-72 bg-card shadow-2xl z-50 border-r border-border"
-      >
-        <div className="flex items-center justify-between p-6 border-b border-border/50">
-          <div className="flex items-center gap-3">
-            <HeartHandshake className="h-8 w-8 text-primary" />
-            <span className="font-serif font-bold text-xl tracking-tight">Sharely</span>
+  return (
+    <div className="min-h-screen bg-slate-50">
+      {/* Sidebar Overlay */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 transition-opacity duration-300"
+          onClick={toggleSidebar}
+        />
+      )}
+
+      {/* Sidebar */}
+      <div className={`fixed top-0 left-0 h-full w-64 bg-white shadow-xl z-50 transform transition-transform duration-300 ease-in-out ${
+        isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+      }`}>
+        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+          <div className="flex items-center gap-2">
+            <HeartHandshake className="h-8 w-8 text-emerald-600" />
+            <span className="font-semibold text-xl text-emerald-600">Share-Nearby</span>
           </div>
           <button
             onClick={toggleSidebar}
-            className="p-2 rounded-full hover:bg-muted transition-colors duration-200"
+            className="p-2 rounded-lg hover:bg-gray-100 transition-colors duration-200"
           >
-            <X className="h-5 w-5 text-muted-foreground" />
+            <X className="h-5 w-5 text-gray-600" />
           </button>
         </div>
 
-        <nav className="p-4 space-y-2">
-          {menuItems.map((item, index) => {
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.label}
-                to={item.href}
-                onClick={toggleSidebar}
-                className={`flex items-center gap-3 px-4 py-3 rounded-full transition-all duration-200 ${index === 0
-                  ? 'bg-primary/10 text-primary font-medium'
-                  : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                  }`}
-              >
-                <Icon className="h-5 w-5" />
-                <span>{item.label}</span>
-              </Link>
-            );
-          })}
-        </nav>
+        <nav className="p-4">
+          <ul className="space-y-2">
+            {menuItems.map((item, index) => {
+              const Icon = item.icon;
+              return (
+                <li key={item.label}>
+                  <Link
+                    to={item.href}
+                    onClick={toggleSidebar}
+                    className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 ${
+                      index === 0 
+                        ? 'bg-emerald-50 text-emerald-600 font-medium' 
+                        : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <Icon className="h-5 w-5" />
+                    <span>{item.label}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
 
-        <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-border/50 bg-muted/30">
-          <Link
-            to="/login"
+          <div className="mt-8 pt-8 border-t border-gray-200">
+            <Link
+              to="/login"
+              onClick={toggleSidebar}
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200"
+            >
+              <LogOut className="h-5 w-5" />
+              <span>Log in</span>
+            </Link>
+          </div>
+        </nav>
+      </div>
+
+      {/* Navbar */}
+      <nav className="sticky top-0 z-30 flex items-center justify-between px-4 lg:px-8 py-5 bg-white border-b border-slate-200">
+        <div className="flex items-center gap-4">
+          <button
             onClick={toggleSidebar}
-            className="flex items-center gap-3 px-4 py-3 rounded-full text-muted-foreground hover:bg-destructive/5 hover:text-destructive transition-all duration-200"
+            className="p-2 rounded-lg hover:bg-gray-100 transition-all duration-200 group"
           >
-            <LogOut className="h-5 w-5" />
-            <span>Log in</span>
+            <Menu className="h-6 w-6 text-gray-600 group-hover:text-gray-900 transition-colors duration-200" />
+          </button>
+          
+          <Link to="/" className="flex items-center gap-2">
+            <HeartHandshake className="h-8 w-8 text-emerald-600" />
+            <span className="font-semibold text-xl text-emerald-600">Share-Nearby</span>
           </Link>
         </div>
-      </motion.div>
-
-      <Navbar onMenuClick={toggleSidebar} />
-
-      {/* Main Content Area */}
-      <main className="overflow-x-hidden">
-
-        {/* Split Hero Section */}
-        <section className="relative pt-12 pb-24 lg:pt-24 lg:pb-32 px-4 lg:px-8 max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-
-            {/* Left Content */}
-            <motion.div
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              variants={fadeInUp}
-              className="text-center lg:text-left space-y-8"
-            >
-              <h1 className="font-serif text-5xl lg:text-7xl font-bold tracking-tight text-foreground leading-[1.1]">
-                Welcome to the <br />
-                Sharely Project
-              </h1>
-              <p className="text-xl text-muted-foreground leading-relaxed max-w-xl mx-auto lg:mx-0 font-light">
-                Join our global community for giving and getting stuff, completely for free. Connect with your neighbors and build a better world.
-              </p>
-              <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 pt-4">
-                <Link to="/signup" className="w-full sm:w-auto">
-                  <Button size="lg" className="w-full h-14 rounded-full bg-primary hover:bg-primary/90 text-xl font-semibold px-10 shadow-lg hover:-translate-y-1 transition-transform">
-                    Sign up
-                  </Button>
-                </Link>
-                <Link to="/app" className="w-full sm:w-auto">
-                  <Button variant="outline" size="lg" className="w-full h-14 rounded-full border-primary text-primary hover:bg-primary/5 text-lg font-medium px-8">
-                    Download the app
-                  </Button>
-                </Link>
+        
+        <div className="flex items-center gap-6">
+          {user ? (
+            <div className="flex items-center gap-4">
+              <button type="button" className="hidden sm:flex items-center gap-1 text-slate-600 text-sm font-medium hover:text-slate-900 transition-smooth">
+                How it works
+                <ChevronDown className="h-4 w-4" />
+              </button>
+              <button type="button" className="hidden sm:flex items-center gap-1 text-slate-600 text-sm font-medium hover:text-slate-900 transition-smooth">
+                Areas
+                <ChevronDown className="h-4 w-4" />
+              </button>
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center">
+                  <User className="h-5 w-5 text-emerald-600" />
+                </div>
+                <span className="text-sm font-medium text-slate-900">{user.name}</span>
+                <button
+                  onClick={handleLogout}
+                  className="text-xs text-slate-500 hover:text-slate-700 transition-smooth"
+                >
+                  Logout
+                </button>
               </div>
+            </div>
+          ) : (
+            <>
+              <button type="button" className="hidden sm:flex items-center gap-1 text-slate-600 text-sm font-medium hover:text-slate-900 transition-smooth">
+                How it works
+                <ChevronDown className="h-4 w-4" />
+              </button>
+              <button type="button" className="hidden sm:flex items-center gap-1 text-slate-600 text-sm font-medium hover:text-slate-900 transition-smooth">
+                Areas
+                <ChevronDown className="h-4 w-4" />
+              </button>
+              <Link to="/login">
+                <Button variant="outline" className="rounded-xl px-5 border-slate-300 text-slate-700 hover:bg-slate-50">
+                  Log in
+                </Button>
+              </Link>
+              <Link to="/signup">
+                <Button className="rounded-xl px-5 bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm hover:shadow-md transition-smooth">
+                  Sign up
+                </Button>
+              </Link>
+            </>
+          )}
+        </div>
+      </nav>
+
+      {/* Hero Section - Split Layout */}
+      <section className="px-4 lg:px-8 py-20 bg-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            {/* Left Side - Typography */}
+            <motion.div 
+              initial="hidden"
+              animate="visible"
+              variants={fadeInLeft}
+              className="space-y-8"
+            >
+              <motion.div 
+                variants={staggerContainer}
+                className="space-y-6"
+              >
+                <motion.h1 variants={fadeInUp} className="text-5xl lg:text-6xl font-serif text-slate-900 leading-tight">
+                  Share the Surplus,
+                  <br />
+                  <motion.span 
+                    variants={fadeInUp}
+                    className="text-emerald-600 inline-block"
+                  >
+                    Strengthen the Neighborhood
+                  </motion.span>
+                </motion.h1>
+                <motion.p variants={fadeInUp} className="text-xl text-slate-600 font-light leading-relaxed max-w-lg">
+                  Connect with your community, share what you don't need, and discover treasures from your neighbors. Building stronger communities, one share at a time.
+                </motion.p>
+              </motion.div>
+              
+              <motion.div 
+                variants={staggerContainer}
+                className="flex flex-col sm:flex-row gap-4"
+              >
+                <motion.div variants={scaleIn}>
+                  <Button className="px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 text-lg font-medium group">
+                    Start Sharing
+                    <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
+                  </Button>
+                </motion.div>
+                <motion.div variants={scaleIn}>
+                  <Button variant="outline" className="px-8 py-4 border-slate-300 text-slate-700 hover:bg-slate-50 rounded-2xl transition-all duration-300 text-lg font-medium">
+                    Browse Items
+                  </Button>
+                </motion.div>
+              </motion.div>
+
+              <motion.div 
+                variants={slideInFromBottom}
+                className="flex items-center gap-8 text-sm text-slate-500"
+              >
+                <div className="flex items-center gap-2">
+                  <Star className="h-4 w-4 text-emerald-500 fill-current" />
+                  <span>4.8/5 Community Rating</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-emerald-500" />
+                  <span>10,000+ Active Users</span>
+                </div>
+              </motion.div>
             </motion.div>
 
-            {/* Right Content - Organic Blob & Images */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 1, ease: "easeOut" }}
+            {/* Right Side - Hero Image with Floating Animation */}
+            <motion.div 
+              initial="hidden"
+              animate="visible"
+              variants={fadeInRight}
               className="relative"
             >
-              <div className="absolute inset-0 bg-secondary rounded-[60%_40%_30%_70%/60%_30%_70%_40%] opacity-20 blur-3xl animate-pulse-slow pointer-events-none" />
-
-              {/* Main Organic Shape Container */}
-              <div className="bg-secondary rounded-[60%_40%_30%_70%/60%_30%_70%_40%] p-8 aspect-square flex items-center justify-center relative shadow-inner overflow-hidden">
-                <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white to-transparent" />
-
-                {/* Floating Cards simulating the reference image */}
-                <motion.div
-                  initial={{ y: 20, opacity: 0 }}
-                  whileInView={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.3, duration: 0.8 }}
-                  className="absolute top-[15%] right-[10%] bg-white p-4 rounded-2xl shadow-xl max-w-[180px] rotate-3"
+              <motion.div 
+                variants={floatingAnimation}
+                animate="animate"
+                className="relative w-full h-96 lg:h-[500px] bg-gradient-to-br from-emerald-100 to-emerald-50 rounded-3xl overflow-hidden shadow-xl"
+              >
+                {/* Placeholder for hero image */}
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <motion.div 
+                    variants={scaleIn}
+                    className="text-center space-y-4"
+                  >
+                    <motion.div 
+                      variants={staggerContainer}
+                      className="text-6xl"
+                    >
+                      🥬📚👗
+                    </motion.div>
+                    <motion.p 
+                      variants={fadeInUp}
+                      className="text-emerald-700 font-medium"
+                    >
+                      Community Sharing Hub
+                    </motion.p>
+                  </motion.div>
+                </div>
+                
+                {/* 30% Less Waste Badge */}
+                <motion.div 
+                  variants={scaleIn}
+                  className="absolute top-6 right-6 bg-emerald-600 text-white rounded-full px-4 py-2 shadow-lg"
                 >
-                  <div className="h-24 bg-slate-200 rounded-xl mb-3 overflow-hidden">
-                    <img src="https://images.unsplash.com/photo-1532298229144-0ec0c57515c7?auto=format&fit=crop&q=80&w=300" alt="Bicycle" className="w-full h-full object-cover" />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <div className="h-6 w-6 rounded-full bg-indigo-100 flex items-center justify-center text-xs font-bold text-indigo-600">M</div>
-                    <span className="text-xs font-bold text-slate-800">Matt Martin</span>
-                  </div>
+                  <span className="text-sm font-bold">30% Less Waste</span>
                 </motion.div>
-
-                <motion.div
-                  initial={{ y: -20, opacity: 0 }}
-                  whileInView={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.5, duration: 0.8 }}
-                  className="absolute bottom-[20%] left-[10%] bg-white p-4 rounded-2xl shadow-xl max-w-[200px] -rotate-2 z-10"
-                >
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="h-10 w-10 rounded-full bg-emerald-100 overflow-hidden">
-                      <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=100" alt="Avatar" className="w-full h-full object-cover" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-slate-900 flex items-center gap-1">Priya Shah <ShieldCheck className="h-3 w-3 text-emerald-500 fill-emerald-500" /></p>
-                      <p className="text-xs text-slate-500">London, UK</p>
-                    </div>
-                  </div>
-                  <div className="h-20 bg-slate-100 rounded-lg overflow-hidden">
-                    <img src="https://images.unsplash.com/photo-1594026212509-50779a8e91b4?auto=format&fit=crop&q=80&w=300" alt="Chair" className="w-full h-full object-cover" />
-                  </div>
-                </motion.div>
-              </div>
+              </motion.div>
             </motion.div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Features Section - Off-white background with large rounded cards */}
-        <section className="py-24 bg-[#F9F8F6]">
-          <div className="max-w-7xl mx-auto px-4 lg:px-8">
-            <div className="text-center mb-16">
-              <h2 className="font-serif text-4xl lg:text-5xl text-foreground mb-6">Discover what your neighbors<br />are giving away</h2>
-            </div>
-
-            <motion.div
-              variants={staggerContainer}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-              className="grid md:grid-cols-3 gap-8"
+      {/* Category Navigation Bar */}
+      <motion.section 
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        variants={slideInFromBottom}
+        className="px-4 lg:px-8 py-8 bg-white border-y border-slate-200"
+      >
+        <div className="max-w-7xl mx-auto">
+          <motion.div 
+            variants={staggerContainer}
+            className="flex items-center gap-2 overflow-x-auto pb-2"
+          >
+            <motion.button
+              variants={scaleIn}
+              onClick={() => setSelectedCategory('All')}
+              className={`flex flex-col items-center gap-2 min-w-[80px] p-3 rounded-xl transition-all duration-300 ${
+                selectedCategory === 'All' 
+                  ? 'bg-emerald-100 border-2 border-emerald-500 scale-105' 
+                  : 'hover:bg-slate-50 border-2 border-transparent hover:border-slate-200'
+              }`}
             >
-              {featureCards.map(({ title, description, icon: Icon, color }) => (
-                <motion.div
-                  key={title}
-                  variants={fadeInUp}
-                  className="bg-white rounded-[2.5rem] p-10 text-center shadow-sm hover:shadow-lg transition-shadow duration-300 flex flex-col items-center"
+              <motion.div 
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+                className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center"
+              >
+                <Package className="h-6 w-6 text-slate-600" />
+              </motion.div>
+              <span className="text-xs font-medium text-slate-700">All</span>
+            </motion.button>
+            
+            {categories.map((category, index) => {
+              const Icon = category.icon;
+              return (
+                <motion.button
+                  key={category.name}
+                  variants={scaleIn}
+                  onClick={() => setSelectedCategory(category.name)}
+                  className={`flex flex-col items-center gap-2 min-w-[80px] p-3 rounded-xl transition-all duration-300 ${
+                    selectedCategory === category.name 
+                      ? 'bg-emerald-100 border-2 border-emerald-500 scale-105' 
+                      : 'hover:bg-slate-50 border-2 border-transparent hover:border-slate-200'
+                  }`}
                 >
-                  <div className="mb-6 h-20 w-20 rounded-full bg-primary/5 flex items-center justify-center">
-                    <Icon className={`h-10 w-10 ${color}`} strokeWidth={1.5} />
+                  <motion.div 
+                    whileHover={{ scale: 1.1, rotate: 5 }}
+                    whileTap={{ scale: 0.95 }}
+                    className={`w-12 h-12 rounded-full ${category.color} flex items-center justify-center`}
+                  >
+                    <Icon className="h-6 w-6" />
+                  </motion.div>
+                  <span className="text-xs font-medium text-slate-700">{category.name}</span>
+                </motion.button>
+              );
+            })}
+          </motion.div>
+        </div>
+      </motion.section>
+
+      {/* Trendy Collection Grid */}
+      <motion.section 
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true }}
+        variants={slideInFromBottom}
+        className="px-4 lg:px-8 py-20 bg-slate-50"
+      >
+        <div className="max-w-7xl mx-auto">
+          <motion.div 
+            variants={staggerContainer}
+            className="space-y-8"
+          >
+            <motion.div 
+              variants={fadeInUp}
+              className="text-center space-y-4"
+            >
+              <motion.h2 variants={fadeInUp} className="text-4xl font-serif text-slate-900">
+                Trending in Your Area
+              </motion.h2>
+              <motion.p variants={fadeInUp} className="text-lg text-slate-600 max-w-2xl mx-auto">
+                Discover what your neighbors are sharing right now
+              </motion.p>
+            </motion.div>
+
+            <motion.div 
+              variants={staggerContainer}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"
+            >
+              {listings.map((item, index) => (
+                <motion.div
+                  key={item.id}
+                  variants={scaleIn}
+                  whileHover={{ y: -5 }}
+                  transition={{ duration: 0.3 }}
+                  className="group bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden cursor-pointer"
+                >
+                  <div className="relative h-48 bg-gradient-to-br from-slate-100 to-slate-50 flex items-center justify-center overflow-hidden">
+                    <motion.div 
+                      whileHover={{ scale: 1.1, rotate: 5 }}
+                      transition={{ duration: 0.3 }}
+                      className="text-5xl"
+                    >
+                      {item.image}
+                    </motion.div>
+                    
+                    {/* Action buttons on hover */}
+                    <motion.div 
+                      initial={{ opacity: 0 }}
+                      whileHover={{ opacity: 1 }}
+                      transition={{ duration: 0.2 }}
+                      className="absolute top-3 right-3 flex gap-2"
+                    >
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => toggleFavorite(item.id)}
+                        className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300"
+                      >
+                        <motion.div
+                          animate={{ scale: item.isFavorite ? [1, 1.2, 1] : 1 }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <Heart className={`h-4 w-4 ${item.isFavorite ? 'text-red-500 fill-current' : 'text-slate-400'}`} />
+                        </motion.div>
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        className="w-8 h-8 bg-white rounded-full flex items-center justify-center shadow-md hover:shadow-lg transition-all duration-300"
+                      >
+                        <Eye className="h-4 w-4 text-slate-400" />
+                      </motion.button>
+                    </motion.div>
                   </div>
-                  <h3 className="font-bold text-xl mb-4 text-foreground">{title}</h3>
-                  <p className="text-muted-foreground leading-relaxed mb-8">
-                    {description}
-                  </p>
-                  <Link to="/about" className="mt-auto border-b border-primary text-primary font-semibold hover:text-primary/80 transition-colors pb-0.5">
-                    Learn more
-                  </Link>
+                  
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className="p-4 space-y-3"
+                  >
+                    <div>
+                      <motion.h3 
+                        whileHover={{ color: '#10b981' }}
+                        className="font-semibold text-slate-900 text-lg transition-colors duration-300"
+                      >
+                        {item.name}
+                      </motion.h3>
+                      <div className="flex items-center gap-1 text-sm text-slate-500 mt-1">
+                        <MapPin className="h-3 w-3" />
+                        <span>{item.location}</span>
+                      </div>
+                    </div>
+                    
+                    <motion.div 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.2 }}
+                      className="flex items-center justify-between"
+                    >
+                      <motion.span 
+                        whileHover={{ scale: 1.05 }}
+                        className="text-xs bg-emerald-100 text-emerald-700 px-2 py-1 rounded-full font-medium cursor-pointer"
+                      >
+                        {item.category}
+                      </motion.span>
+                      <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <Button size="sm" className="text-xs px-3 py-1 bg-emerald-600 hover:bg-emerald-700 transition-colors duration-300">
+                          Request
+                        </Button>
+                      </motion.div>
+                    </motion.div>
+                  </motion.div>
                 </motion.div>
               ))}
             </motion.div>
-          </div>
-        </section>
+          </motion.div>
+        </div>
+      </motion.section>
 
-        {/* Search / Map CTA */}
-        <section className="bg-primary text-primary-foreground overflow-hidden relative">
-          <div className="max-w-7xl mx-auto px-4 lg:px-8 py-20 lg:py-24 text-center relative z-10">
-            <h2 className="font-serif text-3xl lg:text-5xl font-bold mb-6">Update 3.0.6: Better Browsing!</h2>
-            <p className="text-primary-foreground/90 max-w-2xl mx-auto text-lg mb-10 font-light">
-              Behind the scenes, our team has been working around the clock to bring back your favorite features. Giving, asking, and gratitude can flow freely!
-            </p>
-          </div>
-          {/* Abstract decorative wave */}
-          <div className="absolute bottom-0 left-0 right-0 h-16 bg-[#F9F8F6] rounded-t-[50%] scale-x-150 translate-y-8" />
-        </section>
-
-      </main>
-
-      {/* Footer - Warm Beige */}
-      <footer className="bg-[#F9F8F6] pt-16 pb-12">
-        <div className="max-w-7xl mx-auto px-4 lg:px-8">
-          <div className="flex flex-col lg:flex-row gap-12 lg:gap-24 mb-16">
-            {/* Left Column */}
-            <div className="lg:w-1/4">
-              <h4 className="font-bold text-lg mb-6">Home</h4>
-              <div className="space-y-4 font-bold text-lg text-foreground/80">
-                <p className="cursor-pointer hover:text-primary transition-colors">About</p>
-                <p className="cursor-pointer hover:text-primary transition-colors">Media</p>
-                <p className="cursor-pointer hover:text-primary transition-colors">Sharely 101</p>
-              </div>
+      {/* Footer */}
+      <footer className="bg-white border-t border-slate-200 px-4 lg:px-8 py-12">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div>
+              <h4 className="font-semibold text-slate-900 mb-4">Share-Nearby</h4>
+              <ul className="space-y-2 text-sm text-slate-600">
+                <li><Link to="/signup" className="hover:text-emerald-600 transition-colors">Sign up</Link></li>
+                <li><Link to="/login" className="hover:text-emerald-600 transition-colors">Log in</Link></li>
+                <li><a href="#how" className="hover:text-emerald-600 transition-colors">How it works</a></li>
+              </ul>
             </div>
-
-            {/* Divider for desktop */}
-            <div className="hidden lg:block w-px bg-border/50 self-stretch my-2"></div>
-
-            {/* Right Columns Grid */}
-            <div className="lg:w-3/4 grid grid-cols-2 md:grid-cols-3 gap-8">
-              <div>
-                <h6 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-6">Follow Us</h6>
-                <ul className="space-y-3 font-medium text-foreground underline decoration-border hover:decoration-primary underline-offset-4 decoration-2">
-                  <li><a href="#">Facebook</a></li>
-                  <li><a href="#">Instagram</a></li>
-                  <li><a href="#">Linkedin</a></li>
-                </ul>
-              </div>
-              <div>
-                <h6 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-6">Features</h6>
-                <ul className="space-y-3 font-medium text-foreground underline decoration-border hover:decoration-primary underline-offset-4 decoration-2">
-                  <li><a href="#">Shipping</a></li>
-                  <li><a href="#">Subscriptions</a></li>
-                  <li><a href="#">Private Communities</a></li>
-                </ul>
-              </div>
-              <div>
-                <h6 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-6">Support</h6>
-                <ul className="space-y-3 font-medium text-foreground underline decoration-border hover:decoration-primary underline-offset-4 decoration-2">
-                  <li><a href="#">Help Center</a></li>
-                  <li><a href="#">Give App Feedback</a></li>
-                  <li><a href="#">Get Involved</a></li>
-                  <li><a href="#">Contact Us</a></li>
-                </ul>
-              </div>
+            <div>
+              <h4 className="font-semibold text-slate-900 mb-4">Neighbors</h4>
+              <ul className="space-y-2 text-sm text-slate-600">
+                <li><a href="#browse" className="hover:text-emerald-600 transition-colors">Browse items</a></li>
+                <li><a href="#post" className="hover:text-emerald-600 transition-colors">Post an item</a></li>
+                <li><a href="#areas" className="hover:text-emerald-600 transition-colors">Areas we serve</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold text-slate-900 mb-4">Community</h4>
+              <ul className="space-y-2 text-sm text-slate-600">
+                <li><a href="#guidelines" className="hover:text-emerald-600 transition-colors">Guidelines</a></li>
+                <li><a href="#safety" className="hover:text-emerald-600 transition-colors">Safety</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="font-semibold text-slate-900 mb-4">Legal</h4>
+              <ul className="space-y-2 text-sm text-slate-600">
+                <li><a href="#privacy" className="hover:text-emerald-600 transition-colors">Privacy</a></li>
+                <li><a href="#terms" className="hover:text-emerald-600 transition-colors">Terms</a></li>
+              </ul>
             </div>
           </div>
-
-          <div className="flex flex-col md:flex-row items-center justify-between text-sm text-muted-foreground pt-8 border-t border-border/10">
-            <p>© 2026 The Sharely Project</p>
-            <div className="flex gap-6 mt-4 md:mt-0">
-              <a href="#" className="hover:text-foreground underline">Privacy Policy</a>
-              <a href="#" className="hover:text-foreground underline">Terms of Service</a>
-            </div>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-slate-200">
+            <p className="text-sm text-slate-600">© Share-Nearby 2026 · Community Pantry · Bangalore</p>
+            <Button variant="outline" size="sm" className="rounded-xl border-slate-300">
+              Get the app
+            </Button>
           </div>
         </div>
       </footer>
     </div>
   );
 }
+          
+            
